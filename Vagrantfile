@@ -9,7 +9,6 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "playbook-centos65.yml"
-    #ansible.inventory_path = "hosts"
     ansible.limit = "all"
     ansible.verbose = "v"
   end
