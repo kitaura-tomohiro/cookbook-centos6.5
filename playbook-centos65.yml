@@ -1,6 +1,5 @@
-# playbook_jenkins.yaml
 ---
-- hosts: vagrant-centos6.5
+- hosts: all
   sudo: true
   user: vagrant
   tasks:
