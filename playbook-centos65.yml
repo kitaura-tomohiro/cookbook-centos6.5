@@ -2,18 +2,35 @@
 - hosts: all
   sudo: true
   user: vagrant
+  vars:
+    mysql_root_pw : "root"
   tasks:
-    - name: get jenkins repo
-      get_url: url="http://pkg.jenkins-ci.org/redhat/jenkins.repo" dest=/etc/yum.repos.d/jenkins.repo
-
-    - name: set jenkins repo
-      command: rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
-
-    - name: install dependencies
-      yum: name=java-1.7.0-openjdk state=latest
-
-    - name: install jenkins
-      yum: name=jenkins state=latest
-
-    - name: start jenkins service
-      service: name=jenkins state=started
+    - name: set epel repository
+      shell: rpm -Uvh --force http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    - name: set remi repository
+      command: sudo rpm -Uvh --force http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+    - name: set mysql repository
+      yum: name=http://dev.mysql.com/get/mysql-community-release-el6-5.noarch.rpm state=present
+    - name: install apache
+      yum: name=httpd state=latest
+      notify:
+        - restart apache
+    - name: install php
+      yum: name={{item}} enablerepo=remi,epel state=present
+      with_items:
+        - php
+        - php-devel
+        - php-fpm
+        - php-mbstring
+        - php-mysql
+      notify:
+        - restart apache
+    - name: install mysql
+      yum: name={{item}} state=present
+      with_items:
+        - mysql
+        - mysql-server
+        - mysql-devel
+  handlers:
+    - name: restart apache
+      service: name=httpd state=restarted enabled=yes
