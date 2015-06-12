@@ -5,32 +5,31 @@
   vars:
     mysql_root_pw : "root"
   tasks:
-    - name: set epel repository
-      shell: rpm -Uvh --force http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    - name: set remi repository
-      command: sudo rpm -Uvh --force http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
     - name: set mysql repository
       yum: name=http://dev.mysql.com/get/mysql-community-release-el6-5.noarch.rpm state=present
     - name: install apache
       yum: name=httpd state=latest
-      notify:
-        - restart apache
     - name: install php
-      yum: name={{item}} enablerepo=remi,epel state=present
+      yum: name={{item}} state=present
       with_items:
         - php
         - php-devel
         - php-fpm
         - php-mbstring
-        - php-mysql
       notify:
         - restart apache
+    - name: apache restart
+      action: service name=httpd state=started
     - name: install mysql
-      yum: name={{item}} state=present
+      yum: name={{item}} enablerepo=mysql56-community state=present
       with_items:
-        - mysql
-        - mysql-server
-        - mysql-devel
+        - mysql-community-server
+      notify:
+        - restart mysql
+    - name: mysql restart
+      action: service name=mysqld state=started
   handlers:
     - name: restart apache
-      service: name=httpd state=restarted enabled=yes
+      action: service name=httpd state=restarted enabled=yes
+    - name: restart mysql
+      action: service name=mysqld state=restarted enabled=yes
